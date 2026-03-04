@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Voice AI Patient Registration API",
     description="REST API for voice-based patient demographic registration",
-    version="1.0.0",
+    version="1.0.1",  # Updated for Vapi camelCase parameter fix
     lifespan=lifespan
 )
 
