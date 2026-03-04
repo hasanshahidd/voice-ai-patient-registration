@@ -1,0 +1,11 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "frontend/Dockerfile"
+watchPatterns = ["frontend/**"]
+
+[deploy]
+startCommand = "python frontend/server.py"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 10
