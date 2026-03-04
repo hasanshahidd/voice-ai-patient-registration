@@ -11,7 +11,7 @@
 
 - **Phone Number**: `+1 (276) 582-5544`
 - **API Endpoint**: `https://voice-ai-patient-registration-production.up.railway.app`
-- **Dashboard**: *[Check your Railway frontend service URL]*
+- **Dashboard**: `https://voice-ai-frontend-production.up.railway.app/`
 
 Call the number above to experience the voice AI agent firsthand!
 
