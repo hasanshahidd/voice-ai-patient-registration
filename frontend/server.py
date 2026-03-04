@@ -6,7 +6,7 @@ import http.server
 import socketserver
 import os
 
-PORT = 3000
+PORT = int(os.environ.get('PORT', 3000))
 DIRECTORY = "public"
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):

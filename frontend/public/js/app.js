@@ -214,12 +214,13 @@ function updateStats() {
     const todayCount = allPatients.filter(p => 
         p.created_at && p.created_at.startsWith(today)
     ).length;
-    const withInsurance = allPatients.filter(p => p.insurance_provider).length;
+    const maleCount = allPatients.filter(p => p.sex === 'Male').length;
+    const femaleCount = allPatients.filter(p => p.sex === 'Female').length;
 
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-today').textContent = todayCount;
-    document.getElementById('stat-insurance').textContent = withInsurance;
-    document.getElementById('stat-calls').textContent = total;
+    document.getElementById('stat-male').textContent = maleCount;
+    document.getElementById('stat-female').textContent = femaleCount;
     document.getElementById('patient-count').textContent = total;
 }
 

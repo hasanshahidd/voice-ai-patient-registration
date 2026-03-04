@@ -4,19 +4,11 @@
  */
 
 const CONFIG = {
-  // For LOCAL testing (NOW): Use localhost
-  API_BASE_URL: 'http://localhost:8001',
+  // Connected to Railway Backend
+  API_BASE_URL: 'https://voice-ai-patient-registration-production.up.railway.app',
   
-  // For PRODUCTION testing (AFTER deployment): Replace with your Railway URL
-  // API_BASE_URL: 'https://your-app-production.up.railway.app',
-  
-  // Or use environment-based config
-  // API_BASE_URL: window.location.hostname === 'localhost' 
-  //   ? 'http://localhost:3000' 
-  //   : 'https://your-backend.railway.app',
-  
-  // Vapi phone number (update after provisioning)
-  PHONE_NUMBER: '+1-XXX-XXX-XXXX',
+  // Vapi phone number
+  PHONE_NUMBER: '+1 (276) 582-5544',
   
   // API endpoints
   ENDPOINTS: {
