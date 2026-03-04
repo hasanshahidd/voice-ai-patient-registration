@@ -25,21 +25,21 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("=" * 50)
-    logger.info("🚀 Voice AI Agent Backend Server Starting")
-    logger.info(f"📡 Environment: {settings.ENVIRONMENT}")
-    logger.info(f"🗄️  Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'configured'}")
+    logger.info("Voice AI Agent Backend Server Starting")
+    logger.info(f"Environment: {settings.ENVIRONMENT}")
+    logger.info(f"Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'configured'}")
     
     # Create database tables
     await create_tables()
-    logger.info("✅ Database tables ready")
-    logger.info("📞 Ready to receive calls and API requests")
+    logger.info("Database tables ready")
+    logger.info("Ready to receive calls and API requests")
     logger.info("=" * 50)
     
     yield
     
     logger.info("Shutting down...")
     await close_database()
-    logger.info("✅ Database connections closed")
+    logger.info("Database connections closed")
 
 app = FastAPI(
     title="Voice AI Patient Registration API",

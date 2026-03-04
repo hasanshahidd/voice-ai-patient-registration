@@ -23,7 +23,7 @@ async def vapi_webhook(
 ):
     try:
         body = await request.json()
-        logger.info(f"📞 Vapi webhook received: {body.get('message', {}).get('type')}")
+        logger.info(f"Vapi webhook received: {body.get('message', {}).get('type')}")
         
         message = body.get("message", {})
         message_type = message.get("type")
@@ -72,20 +72,20 @@ async def vapi_webhook(
         elif message_type == "end-of-call-report":
             duration = message.get("duration", 0)
             summary = message.get("summary", "")
-            logger.info(f"📞 Call ended. Duration: {duration}s")
-            logger.info(f"📞 Summary: {summary}")
+            logger.info(f"Call ended. Duration: {duration}s")
+            logger.info(f"Summary: {summary}")
         
         return {"success": True, "message": "Webhook received"}
         
     except Exception as e:
-        logger.error(f"❌ Vapi webhook error: {e}", exc_info=True)
+        logger.error(f"Vapi webhook error: {e}", exc_info=True)
         return {"success": False, "error": str(e)}
 
 async def handle_save_patient(parameters: dict, db: AsyncSession):
     """Save patient from Vapi function call. Returns structured response for LLM to speak."""
     try:
         logger.info("=" * 80)
-        logger.info("📞 VAPI WEBHOOK - save_patient called")
+        logger.info("VAPI WEBHOOK - save_patient called")
         logger.info("=" * 80)
         logger.info(f"Raw parameters received:\n{json.dumps(parameters, indent=2)}")
         logger.info("=" * 80)
@@ -94,7 +94,7 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
         first_name = parameters.get('firstName') or parameters.get('first_name')
         last_name = parameters.get('lastName') or parameters.get('last_name')
         
-        logger.info(f"📞CHECK Saving patient data: {first_name} {last_name}")
+        logger.info(f"Saving patient data: {first_name} {last_name}")
         
         dob_str = parameters.get("dateOfBirth") or parameters.get("date_of_birth", "")
         if '/' in dob_str:
@@ -118,7 +118,7 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
         existing_patient = result.scalar_one_or_none()
         
         if existing_patient:
-            logger.warning(f"⚠️  Duplicate detected: {existing_patient.patient_id}")
+            logger.warning(f"Duplicate detected: {existing_patient.patient_id}")
             return {
                 "result": {
                     "success": False,
@@ -149,14 +149,14 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
             "emergency_contact_phone": emergency_phone
         }
         
-        logger.info(f"📝 Final structured patient data to save:\n{json.dumps({k: str(v) for k, v in patient_data.items()}, indent=2)}")
+        logger.info(f"Final structured patient data to save:\n{json.dumps({k: str(v) for k, v in patient_data.items()}, indent=2)}")
         
         new_patient = Patient(**patient_data)
         db.add(new_patient)
         await db.commit()
         await db.refresh(new_patient)
         
-        logger.info(f"✅ Patient created successfully via Vapi webhook")
+        logger.info(f"Patient created successfully via Vapi webhook")
         logger.info(f"   Patient ID: {new_patient.patient_id}")
         logger.info(f"   Name: {new_patient.first_name} {new_patient.last_name}")
         logger.info(f"   Phone: {new_patient.phone_number}")
@@ -176,7 +176,7 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
         
     except Exception as e:
         await db.rollback()
-        logger.error(f"❌ Error saving patient via Vapi: {e}", exc_info=True)
+        logger.error(f"Error saving patient via Vapi: {e}", exc_info=True)
         
         return {
             "result": {
@@ -194,7 +194,7 @@ async def handle_check_duplicate(parameters: dict, db: AsyncSession):
         last_name = parameters.get("lastName") or parameters.get("last_name", "") or parameters.get("lastName\r\n", "")
         dob_str = parameters.get("dateOfBirth") or parameters.get("date_of_birth", "")
         
-        logger.info(f"📞 Check duplicate: {first_name} {last_name} {dob_str}")
+        logger.info(f"Check duplicate: {first_name} {last_name} {dob_str}")
         
         # Parse date
         if dob_str:
@@ -214,7 +214,7 @@ async def handle_check_duplicate(parameters: dict, db: AsyncSession):
         existing_patient = result.scalar_one_or_none()
         
         if existing_patient:
-            logger.info(f"✅ Duplicate found: {existing_patient.patient_id}")
+            logger.info(f"Duplicate found: {existing_patient.patient_id}")
             return {
                 "result": {
                     "exists": True,
@@ -225,11 +225,11 @@ async def handle_check_duplicate(parameters: dict, db: AsyncSession):
                 }
             }
         
-        logger.info(f"✅ No duplicate found")
+        logger.info(f"No duplicate found")
         return {"result": {"exists": False}}
         
     except Exception as e:
-        logger.error(f"❌ Error checking duplicate: {e}", exc_info=True)
+        logger.error(f"Error checking duplicate: {e}", exc_info=True)
         return {"result": {"exists": False, "error": True, "message": str(e)}}
 
 @router.post("/check-duplicate")
@@ -240,7 +240,7 @@ async def check_duplicate_endpoint(
     """Standalone endpoint for checking duplicate patients."""
     try:
         body = await request.json()
-        logger.info(f"📞 Check duplicate request: {body}")
+        logger.info(f"Check duplicate request: {body}")
         
         # Support both direct parameters or nested message structure
         parameters = body.get("message", {}).get("functionCall", {}).get("parameters", body)
@@ -248,7 +248,7 @@ async def check_duplicate_endpoint(
         return await handle_check_duplicate(parameters, db)
         
     except Exception as e:
-        logger.error(f"❌ Check duplicate error: {e}", exc_info=True)
+        logger.error(f"Check duplicate error: {e}", exc_info=True)
         return {"result": {"exists": False, "error": True, "message": str(e)}}
 
 @router.get("/status")

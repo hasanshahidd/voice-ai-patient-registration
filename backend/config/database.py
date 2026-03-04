@@ -40,14 +40,14 @@ async def create_tables():
     try:
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
-            logger.info("✅ Database connection successful")
+            logger.info("Database connection successful")
             
             # Create tables
             await conn.run_sync(Base.metadata.create_all)
-            logger.info("✅ Database tables created/verified")
+            logger.info("Database tables created/verified")
             
     except Exception as e:
-        logger.error(f"❌ Database initialization failed: {e}")
+        logger.error(f"Database initialization failed: {e}")
         raise
 
 async def close_database():

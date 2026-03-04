@@ -154,7 +154,7 @@ async def create_patient(
         await db.commit()
         await db.refresh(new_patient)
         
-        logger.info(f"✅ Patient created: {new_patient.patient_id} - {new_patient.first_name} {new_patient.last_name}")
+        logger.info(f"Patient created: {new_patient.patient_id} - {new_patient.first_name} {new_patient.last_name}")
         
         return PatientSingleResponse(
             data=PatientResponse.model_validate(new_patient),
@@ -198,7 +198,7 @@ async def update_patient(
         await db.commit()
         await db.refresh(patient)
         
-        logger.info(f"✅ Patient updated: {patient_id}")
+        logger.info(f"Patient updated: {patient_id}")
         
         return PatientSingleResponse(
             data=PatientResponse.model_validate(patient),
@@ -238,7 +238,7 @@ async def delete_patient(
         
         await db.commit()
         
-        logger.info(f"✅ Patient soft-deleted: {patient_id}")
+        logger.info(f"Patient soft-deleted: {patient_id}")
         
         return {
             "data": {"patient_id": str(patient_id), "deleted": True},
