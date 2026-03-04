@@ -9,9 +9,9 @@
 
 ## 📞 Live Demo
 
-- **Phone Number**: `[UPDATE AFTER VAPI SETUP]`
-- **API Endpoint**: `[UPDATE AFTER DEPLOYMENT]`
-- **Dashboard**: `[UPDATE AFTER DEPLOYMENT]`
+- **Phone Number**: `+1 (276) 582-5544`
+- **API Endpoint**: `https://voice-ai-patient-registration-production.up.railway.app`
+- **Dashboard**: *[Check your Railway frontend service URL]*
 
 Call the number above to experience the voice AI agent firsthand!
 
@@ -124,7 +124,7 @@ This system was built with **intentional trade-offs** to prioritize rapid develo
 
 ### Next Steps for Production
 
-See [CRITICAL_ITEMS_AUDIT.md](CRITICAL_ITEMS_AUDIT.md) for complete pre-deployment checklist and [TECHNICAL_EXPLANATION.md](TECHNICAL_EXPLANATION.md) for full architecture details.
+See [TECHNICAL_EXPLANATION.md](docs/TECHNICAL_EXPLANATION.md) for full architecture details and [DEPLOYMENT_PLAN.md](docs/DEPLOYMENT_PLAN.md) for deployment guide.
 
 ---
 
@@ -286,10 +286,13 @@ TONE: Professional yet warm, like a friendly medical receptionist.
 | Document | Description |
 |----------|-------------|
 | [Backend README](backend/README.md) | API endpoints, setup, deployment |
-| [Implementation Plan](IMPLEMENTATION_PLAN.md) | Complete 3-hour implementation strategy |
 | [Vapi Setup Guide](docs/VAPI_SETUP.md) | Step-by-step Vapi.ai configuration |
-| [API Documentation](docs/API.md) | REST API reference |
-| [Deployment Guide](docs/DEPLOYMENT.md) | Deploy to Railway, Render, or Fly.io |
+| [Technical Explanation](docs/TECHNICAL_EXPLANATION.md) | Complete architecture and design decisions |
+| [Deployment Guide](docs/DEPLOYMENT_PLAN.md) | Deploy to Railway with full configuration |
+| [Testing Guide](docs/TESTING_GUIDE.md) | Comprehensive testing procedures |
+| [Business Overview](docs/BUSINESS_OVERVIEW.md) | Use cases and business value |
+| [Contributing](docs/CONTRIBUTING.md) | Contribution guidelines |
+| [Changelog](docs/CHANGELOG.md) | Version history |
 
 ---
 
@@ -424,10 +427,14 @@ voice-ai-agent/
 │   ├── schema.sql
 │   └── seed.sql
 ├── docs/                       # Detailed documentation
-│   ├── API.md
-│   ├── VAPI_SETUP.md
-│   └── DEPLOYMENT.md
-├── IMPLEMENTATION_PLAN.md      # 3-hour implementation strategy
+│   ├── VAPI_SETUP.md          # Voice AI configuration
+│   ├── TECHNICAL_EXPLANATION.md
+│   ├── DEPLOYMENT_PLAN.md
+│   ├── TESTING_GUIDE.md
+│   ├── TESTING_WORKFLOW.md
+│   ├── BUSINESS_OVERVIEW.md
+│   ├── CONTRIBUTING.md
+│   └── CHANGELOG.md
 ├── README.md                   # This file
 └── .gitignore
 ```

@@ -6,38 +6,34 @@ Backend REST API service for the Voice AI Agent Patient Registration System.
 
 ## Tech Stack
 
-- **Runtime**: Node.js 18+
-- **Framework**: Express.js
-- **Database**: PostgreSQL
+- **Runtime**: Python 3.9+
+- **Framework**: FastAPI
+- **Database**: PostgreSQL with SQLAlchemy + asyncpg
 - **Voice AI**: Vapi.ai integration
-- **Validation**: Joi
-- **Security**: Helmet, CORS
+- **Validation**: Pydantic
+- **Server**: Uvicorn (ASGI)
+- **Security**: CORS middleware
 
 ## Project Structure
 
 ```
 backend/
-├── src/
-│   ├── config/
-│   │   └── database.js          # Database connection pool
-│   ├── models/
-│   │   └── Patient.js            # Patient data model
-│   ├── controllers/
-│   │   └── patientController.js  # Business logic
-│   ├── routes/
-│   │   ├── patients.js           # REST API routes
-│   │   └── vapi.js               # Vapi webhook routes
-│   ├── middleware/
-│   │   └── validation.js         # Input validation
-│   ├── services/
-│   │   └── vapiService.js        # Vapi API client
-│   └── app.js                    # Main application
-├── database/
-│   ├── schema.sql                # Database schema
-│   └── seed.sql                  # Sample data
-├── package.json
-├── .env.example
-└── README.md
+├── app.py                        # Main FastAPI application
+├── requirements.txt              # Python dependencies
+├── config/
+│   ├── __init__.py
+│   ├── database.py              # Database connection & models
+│   └── settings.py              # Environment config (Pydantic)
+├── models/
+│   ├── __init__.py
+│   └── patient.py               # SQLAlchemy Patient model
+├── routers/
+│   ├── __init__.py
+│   ├── patients.py              # REST API routes
+│   └── vapi.py                  # Vapi webhook routes
+└── schemas/
+    ├── __init__.py
+    └── patient_schemas.py       # Pydantic request/response schemas
 ```
 
 ## Setup Instructions
@@ -46,25 +42,30 @@ backend/
 
 ```bash
 cd backend
-npm install
+pip install -r requirements.txt
 ```
 
 ### 2. Configure Environment Variables
 
-Copy `.env.example` to `.env`:
+Create a `.env` file in the backend directory:
 
 ```bash
-cp .env.example .env
+touch .env
 ```
 
-Edit `.env` with your configuration:
+Add your configuration:
 
 ```env
-PORT=3000
-NODE_ENV=development
+# Server
+PORT=8000
+ENVIRONMENT=development
+
+# Database
 DATABASE_URL=postgresql://username:password@localhost:5432/patient_registration
-VAPI_API_KEY=your_vapi_api_key
-VAPI_PHONE_NUMBER_ID=your_phone_number_id
+
+# Vapi.ai (optional for webhook validation)
+VAPI_API_KEY=your_vapi_api_key_here
+VAPI_BASE_URL=https://api.vapi.ai
 ```
 
 ### 3. Setup Database
@@ -76,31 +77,31 @@ VAPI_PHONE_NUMBER_ID=your_phone_number_id
 createdb patient_registration
 
 # Run schema
-psql patient_registration < database/schema.sql
+psql patient_registration < ../database/schema.sql
 
 # (Optional) Load seed data
-psql patient_registration < database/seed.sql
+psql patient_registration < ../database/seed.sql
 ```
 
 **Option B: Railway / Hosted PostgreSQL**
 
 1. Create PostgreSQL database on Railway
 2. Copy DATABASE_URL to `.env`
-3. Run migrations using a client or pgAdmin
+3. Tables will be auto-created on first run via SQLAlchemy
 
 ### 4. Start Server
 
 **Development mode (with auto-reload):**
 ```bash
-npm run dev
+uvicorn app:app --reload --port 8000
 ```
 
 **Production mode:**
 ```bash
-npm start
+uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
-Server will start on `http://localhost:3000`
+Server will start on `http://localhost:8000`
 
 ## API Endpoints
 
