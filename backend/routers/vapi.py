@@ -28,16 +28,38 @@ async def vapi_webhook(
         message = body.get("message", {})
         message_type = message.get("type")
         
-        if message_type == "function-call":
-            function_call = message.get("functionCall", {})
-            function_name = function_call.get("name")
-            parameters = function_call.get("parameters", {})
+        # Handle both "function-call" and "tool-calls" formats
+        if message_type in ["function-call", "tool-calls"]:
+            # Try new format first (tool-calls)
+            if message_type == "tool-calls":
+                tool_calls = message.get("toolCalls", [])
+                if tool_calls:
+                    for tool_call in tool_calls:
+                        function = tool_call.get("function", {})
+                        function_name = function.get("name")
+                        parameters = function.get("arguments", {})
+                        
+                        # Parse if it's a JSON string
+                        if isinstance(parameters, str):
+                            parameters = json.loads(parameters)
+                        
+                        if function_name == "save_patient":
+                            return await handle_save_patient(parameters, db)
+                        
+                        elif function_name == "check_duplicate":
+                            return await handle_check_duplicate(parameters, db)
             
-            if function_name == "save_patient":
-                return await handle_save_patient(parameters, db)
-            
-            elif function_name == "check_duplicate":
-                return await handle_check_duplicate(parameters, db)
+            # Try old format (function-call)
+            else:
+                function_call = message.get("functionCall", {})
+                function_name = function_call.get("name")
+                parameters = function_call.get("parameters", {})
+                
+                if function_name == "save_patient":
+                    return await handle_save_patient(parameters, db)
+                
+                elif function_name == "check_duplicate":
+                    return await handle_check_duplicate(parameters, db)
         
         elif message_type == "end-of-call-report":
             duration = message.get("duration", 0)
@@ -157,14 +179,26 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
         }
 
 async def handle_check_duplicate(parameters: dict, db: AsyncSession):
-    """Check if patient exists by phone number."""
+    """Check if patient exists by firstName, lastName, and dateOfBirth."""
     try:
         # Vapi sends camelCase, support both formats
-        phone = ''.join(filter(str.isdigit, parameters.get("phoneNumber") or parameters.get("phone_number", "")))
+        first_name = parameters.get("firstName") or parameters.get("first_name", "")
+        last_name = parameters.get("lastName") or parameters.get("last_name", "") or parameters.get("lastName\r\n", "")
+        dob_str = parameters.get("dateOfBirth") or parameters.get("date_of_birth", "")
+        
+        logger.info(f"📞 Check duplicate: {first_name} {last_name} {dob_str}")
+        
+        # Parse date
+        if dob_str:
+            dob = date.fromisoformat(dob_str)
+        else:
+            return {"result": {"exists": False, "error": True, "message": "Date of birth required"}}
         
         query = select(Patient).where(
             and_(
-                Patient.phone_number == phone,
+                Patient.first_name == first_name,
+                Patient.last_name == last_name,
+                Patient.date_of_birth == dob,
                 Patient.deleted_at.is_(None)
             )
         )
@@ -172,6 +206,7 @@ async def handle_check_duplicate(parameters: dict, db: AsyncSession):
         existing_patient = result.scalar_one_or_none()
         
         if existing_patient:
+            logger.info(f"✅ Duplicate found: {existing_patient.patient_id}")
             return {
                 "result": {
                     "exists": True,
@@ -182,11 +217,12 @@ async def handle_check_duplicate(parameters: dict, db: AsyncSession):
                 }
             }
         
+        logger.info(f"✅ No duplicate found")
         return {"result": {"exists": False}}
         
     except Exception as e:
-        logger.error(f"❌ Error checking duplicate: {e}")
-        return {"result": {"exists": False, "error": True}}
+        logger.error(f"❌ Error checking duplicate: {e}", exc_info=True)
+        return {"result": {"exists": False, "error": True, "message": str(e)}}
 
 @router.post("/check-duplicate")
 async def check_duplicate_endpoint(
