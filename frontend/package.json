@@ -1,0 +1,19 @@
+{
+  "name": "voice-ai-agent-frontend",
+  "version": "1.0.0",
+  "description": "Simple dashboard for Voice AI Patient Registration System",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "dev": "live-server public/"
+  },
+  "keywords": [
+    "dashboard",
+    "patient-registration"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

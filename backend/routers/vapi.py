@@ -1,0 +1,194 @@
+"""
+Vapi.ai webhook handler for voice agent function calls.
+"""
+
+from fastapi import APIRouter, Depends, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_
+from datetime import datetime, date
+import logging
+import json
+
+from config.database import get_db
+from models.patient import Patient
+from schemas.patient_schemas import PatientCreate
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+@router.post("/webhook")
+async def vapi_webhook(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        body = await request.json()
+        logger.info(f"📞 Vapi webhook received: {body.get('message', {}).get('type')}")
+        
+        message = body.get("message", {})
+        message_type = message.get("type")
+        
+        if message_type == "function-call":
+            function_call = message.get("functionCall", {})
+            function_name = function_call.get("name")
+            parameters = function_call.get("parameters", {})
+            
+            if function_name == "save_patient":
+                return await handle_save_patient(parameters, db)
+            
+            elif function_name == "check_duplicate":
+                return await handle_check_duplicate(parameters, db)
+        
+        elif message_type == "end-of-call-report":
+            duration = message.get("duration", 0)
+            summary = message.get("summary", "")
+            logger.info(f"📞 Call ended. Duration: {duration}s")
+            logger.info(f"📞 Summary: {summary}")
+        
+        return {"success": True, "message": "Webhook received"}
+        
+    except Exception as e:
+        logger.error(f"❌ Vapi webhook error: {e}", exc_info=True)
+        return {"success": False, "error": str(e)}
+
+async def handle_save_patient(parameters: dict, db: AsyncSession):
+    """Save patient from Vapi function call. Returns structured response for LLM to speak."""
+    try:
+        logger.info("=" * 80)
+        logger.info("📞 VAPI WEBHOOK - save_patient called")
+        logger.info("=" * 80)
+        logger.info(f"Raw parameters received:\n{json.dumps(parameters, indent=2)}")
+        logger.info("=" * 80)
+        
+        logger.info(f"📞CHECK Saving patient data: {parameters.get('first_name')} {parameters.get('last_name')}")
+        
+        dob_str = parameters.get("date_of_birth", "")
+        if '/' in dob_str:
+            month, day, year = dob_str.split('/')
+            dob = date(int(year), int(month), int(day))
+        else:
+            dob = date.fromisoformat(dob_str)
+        
+        phone = ''.join(filter(str.isdigit, parameters.get("phone_number", "")))
+        emergency_phone = parameters.get("emergency_contact_phone")
+        if emergency_phone:
+            emergency_phone = ''.join(filter(str.isdigit, emergency_phone))
+        
+        query = select(Patient).where(
+            and_(
+                Patient.phone_number == phone,
+                Patient.deleted_at.is_(None)
+            )
+        )
+        result = await db.execute(query)
+        existing_patient = result.scalar_one_or_none()
+        
+        if existing_patient:
+            logger.warning(f"⚠️  Duplicate detected: {existing_patient.patient_id}")
+            return {
+                "result": {
+                    "success": False,
+                    "duplicate": True,
+                    "patient_id": str(existing_patient.patient_id),
+                    "first_name": existing_patient.first_name,
+                    "last_name": existing_patient.last_name,
+                    "message": f"A patient record already exists for {existing_patient.first_name} {existing_patient.last_name}. Would you like to update it instead?"
+                }
+            }
+        
+        patient_data = {
+            "first_name": parameters.get("first_name"),
+            "last_name": parameters.get("last_name"),
+            "date_of_birth": dob,
+            "sex": parameters.get("sex"),
+            "phone_number": phone,
+            "email": parameters.get("email"),
+            "address_line_1": parameters.get("address_line_1"),
+            "address_line_2": parameters.get("address_line_2"),
+            "city": parameters.get("city"),
+            "state": parameters.get("state", "").upper(),
+            "zip_code": parameters.get("zip_code"),
+            "insurance_provider": parameters.get("insurance_provider"),
+            "insurance_member_id": parameters.get("insurance_member_id"),
+            "preferred_language": parameters.get("preferred_language", "English"),
+            "emergency_contact_name": parameters.get("emergency_contact_name"),
+            "emergency_contact_phone": emergency_phone
+        }
+        
+        logger.info(f"📝 Final structured patient data to save:\n{json.dumps({k: str(v) for k, v in patient_data.items()}, indent=2)}")
+        
+        new_patient = Patient(**patient_data)
+        db.add(new_patient)
+        await db.commit()
+        await db.refresh(new_patient)
+        
+        logger.info(f"✅ Patient created successfully via Vapi webhook")
+        logger.info(f"   Patient ID: {new_patient.patient_id}")
+        logger.info(f"   Name: {new_patient.first_name} {new_patient.last_name}")
+        logger.info(f"   Phone: {new_patient.phone_number}")
+        logger.info(f"   Timestamp: {new_patient.created_at}")
+        logger.info("=" * 80)
+        
+        return {
+            "result": {
+                "success": True,
+                "duplicate": False,
+                "patient_id": str(new_patient.patient_id),
+                "first_name": new_patient.first_name,
+                "last_name": new_patient.last_name,
+                "message": f"Thank you, {new_patient.first_name}. Your registration is complete!"
+            }
+        }
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"❌ Error saving patient via Vapi: {e}", exc_info=True)
+        
+        return {
+            "result": {
+                "success": False,
+                "error": True,
+                "message": "I apologize, but there was an error saving your information. Please try again or contact our office directly."
+            }
+        }
+
+async def handle_check_duplicate(parameters: dict, db: AsyncSession):
+    """Check if patient exists by phone number."""
+    try:
+        phone = ''.join(filter(str.isdigit, parameters.get("phone_number", "")))
+        
+        query = select(Patient).where(
+            and_(
+                Patient.phone_number == phone,
+                Patient.deleted_at.is_(None)
+            )
+        )
+        result = await db.execute(query)
+        existing_patient = result.scalar_one_or_none()
+        
+        if existing_patient:
+            return {
+                "result": {
+                    "exists": True,
+                    "patient_id": str(existing_patient.patient_id),
+                    "first_name": existing_patient.first_name,
+                    "last_name": existing_patient.last_name,
+                    "date_of_birth": existing_patient.date_of_birth.isoformat()
+                }
+            }
+        
+        return {"result": {"exists": False}}
+        
+    except Exception as e:
+        logger.error(f"❌ Error checking duplicate: {e}")
+        return {"result": {"exists": False, "error": True}}
+
+@router.get("/status")
+async def vapi_status(request: Request):
+    webhook_url = f"{request.url.scheme}://{request.url.netloc}/api/vapi/webhook"
+    
+    return {
+        "status": "active",
+        "webhook_url": webhook_url,
+        "timestamp": datetime.utcnow().isoformat()
+    }
