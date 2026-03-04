@@ -60,17 +60,21 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
         logger.info(f"Raw parameters received:\n{json.dumps(parameters, indent=2)}")
         logger.info("=" * 80)
         
-        logger.info(f"📞CHECK Saving patient data: {parameters.get('first_name')} {parameters.get('last_name')}")
+        # Vapi sends camelCase parameters, convert to snake_case for Python
+        first_name = parameters.get('firstName') or parameters.get('first_name')
+        last_name = parameters.get('lastName') or parameters.get('last_name')
         
-        dob_str = parameters.get("date_of_birth", "")
+        logger.info(f"📞CHECK Saving patient data: {first_name} {last_name}")
+        
+        dob_str = parameters.get("dateOfBirth") or parameters.get("date_of_birth", "")
         if '/' in dob_str:
             month, day, year = dob_str.split('/')
             dob = date(int(year), int(month), int(day))
         else:
             dob = date.fromisoformat(dob_str)
         
-        phone = ''.join(filter(str.isdigit, parameters.get("phone_number", "")))
-        emergency_phone = parameters.get("emergency_contact_phone")
+        phone = ''.join(filter(str.isdigit, parameters.get("phoneNumber") or parameters.get("phone_number", "")))
+        emergency_phone = parameters.get("emergencyContactPhone") or parameters.get("emergency_contact_phone")
         if emergency_phone:
             emergency_phone = ''.join(filter(str.isdigit, emergency_phone))
         
@@ -97,21 +101,21 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
             }
         
         patient_data = {
-            "first_name": parameters.get("first_name"),
-            "last_name": parameters.get("last_name"),
+            "first_name": first_name,
+            "last_name": last_name,
             "date_of_birth": dob,
             "sex": parameters.get("sex"),
             "phone_number": phone,
             "email": parameters.get("email"),
-            "address_line_1": parameters.get("address_line_1"),
-            "address_line_2": parameters.get("address_line_2"),
+            "address_line_1": parameters.get("addressLine1") or parameters.get("address_line_1"),
+            "address_line_2": parameters.get("addressLine2") or parameters.get("address_line_2"),
             "city": parameters.get("city"),
-            "state": parameters.get("state", "").upper(),
-            "zip_code": parameters.get("zip_code"),
-            "insurance_provider": parameters.get("insurance_provider"),
-            "insurance_member_id": parameters.get("insurance_member_id"),
-            "preferred_language": parameters.get("preferred_language", "English"),
-            "emergency_contact_name": parameters.get("emergency_contact_name"),
+            "state": (parameters.get("state") or "").upper(),
+            "zip_code": parameters.get("zipCode") or parameters.get("zip_code"),
+            "insurance_provider": parameters.get("insuranceProvider") or parameters.get("insurance_provider"),
+            "insurance_member_id": parameters.get("insuranceMemberId") or parameters.get("insurance_member_id"),
+            "preferred_language": parameters.get("preferredLanguage") or parameters.get("preferred_language", "English"),
+            "emergency_contact_name": parameters.get("emergencyContactName") or parameters.get("emergency_contact_name"),
             "emergency_contact_phone": emergency_phone
         }
         
@@ -155,7 +159,8 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
 async def handle_check_duplicate(parameters: dict, db: AsyncSession):
     """Check if patient exists by phone number."""
     try:
-        phone = ''.join(filter(str.isdigit, parameters.get("phone_number", "")))
+        # Vapi sends camelCase, support both formats
+        phone = ''.join(filter(str.isdigit, parameters.get("phoneNumber") or parameters.get("phone_number", "")))
         
         query = select(Patient).where(
             and_(
@@ -182,6 +187,25 @@ async def handle_check_duplicate(parameters: dict, db: AsyncSession):
     except Exception as e:
         logger.error(f"❌ Error checking duplicate: {e}")
         return {"result": {"exists": False, "error": True}}
+
+@router.post("/check-duplicate")
+async def check_duplicate_endpoint(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """Standalone endpoint for checking duplicate patients."""
+    try:
+        body = await request.json()
+        logger.info(f"📞 Check duplicate request: {body}")
+        
+        # Support both direct parameters or nested message structure
+        parameters = body.get("message", {}).get("functionCall", {}).get("parameters", body)
+        
+        return await handle_check_duplicate(parameters, db)
+        
+    except Exception as e:
+        logger.error(f"❌ Check duplicate error: {e}", exc_info=True)
+        return {"result": {"exists": False, "error": True, "message": str(e)}}
 
 @router.get("/status")
 async def vapi_status(request: Request):
