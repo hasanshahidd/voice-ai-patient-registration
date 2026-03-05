@@ -11,7 +11,7 @@
 
 - **Phone Number**: `+1 (276) 582-5544`
 - **Backend API**: `https://voice-ai-patient-registration-production.up.railway.app`
-- **Frontend Dashboard**: Check your Railway dashboard at [railway.app/project/calm-spirit](https://railway.com/project/4d172bb5-f637-46df-8d32-df2ffb12a439)
+- **Frontend Dashboard**: `https://calm-spirit-production.up.railway.app`
 
 ### 📌 Important: Viewing New Patient Data
 
