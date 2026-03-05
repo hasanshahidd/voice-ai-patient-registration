@@ -124,7 +124,7 @@ function renderPatients(patients) {
     if (!patients || patients.length === 0) {
         tbody.innerHTML = `
             <tr class="empty-state">
-                <td colspan="9">
+                <td colspan="8">
                     <div class="loading-content">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 64px; height: 64px; color: var(--gray-300);">
                             <circle cx="12" cy="12" r="10" stroke-width="2"/>
