@@ -169,14 +169,6 @@ function renderPatients(patients) {
                 </div>
             </td>
             <td>
-                ${patient.insurance_provider 
-                    ? `<div>
-                        <div>${escapeHtml(patient.insurance_provider)}</div>
-                        <div style="font-size: 12px; color: var(--gray-500);">${escapeHtml(patient.insurance_member_id || 'N/A')}</div>
-                       </div>`
-                    : '<span style="color: var(--gray-400);">No Insurance</span>'}
-            </td>
-            <td>
                 <span class="status-badge status-active">Active</span>
             </td>
             <td>
