@@ -49,9 +49,16 @@ async def get_patients(
         result = await db.execute(query)
         patients = result.scalars().all()
         
+        # Convert empty strings to None for validation
+        patient_list = []
+        for p in patients:
+            if p.email == '':
+                p.email = None
+            patient_list.append(PatientResponse.model_validate(p))
+        
         return PatientListResponse(
-            data=[PatientResponse.model_validate(p) for p in patients],
-            count=len(patients),
+            data=patient_list,
+            count=len(patient_list),
             timestamp=datetime.utcnow()
         )
         
