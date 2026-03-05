@@ -252,3 +252,27 @@ async def delete_patient(
         await db.rollback()
         logger.error(f"Error deleting patient: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/fix-empty-emails")
+async def fix_empty_emails(db: AsyncSession = Depends(get_db)):
+    """One-time endpoint to fix empty email strings in database."""
+    try:
+        from sqlalchemy import update
+        
+        # Update all empty emails to NULL
+        stmt = update(Patient).where(Patient.email == '').values(email=None)
+        result = await db.execute(stmt)
+        await db.commit()
+        
+        logger.info(f"Fixed {result.rowcount} patient records with empty emails")
+        
+        return {
+            "success": True,
+            "fixed_count": result.rowcount,
+            "message": f"Successfully fixed {result.rowcount} patient records"
+        }
+        
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error fixing empty emails: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
