@@ -37,6 +37,7 @@ async def vapi_webhook(
                     # Process each tool call and collect results
                     results = []
                     for tool_call in tool_calls:
+                        tool_call_id = tool_call.get("id")
                         function = tool_call.get("function", {})
                         function_name = function.get("name")
                         parameters = function.get("arguments", {})
@@ -47,15 +48,21 @@ async def vapi_webhook(
                         
                         if function_name == "save_patient":
                             result = await handle_save_patient(parameters, db)
-                            results.append(result)
+                            results.append({
+                                "toolCallId": tool_call_id,
+                                "result": json.dumps(result.get("result", result))
+                            })
                         
                         elif function_name == "check_duplicate":
                             result = await handle_check_duplicate(parameters, db)
-                            results.append(result)
+                            results.append({
+                                "toolCallId": tool_call_id,
+                                "result": json.dumps(result.get("result", result))
+                            })
                     
-                    # Return the last result (usually save_patient if both tools called)
+                    # Return results array in Vapi expected format
                     if results:
-                        return results[-1]
+                        return {"results": results}
             
             # Try old format (function-call)
             else:
