@@ -163,8 +163,9 @@ function renderPatients(patients) {
             </td>
             <td>
                 <div>
-                    <div>${escapeHtml(patient.city)}, ${escapeHtml(patient.state)}</div>
-                    <div style="font-size: 12px; color: var(--gray-500);">${escapeHtml(patient.zip_code)}</div>
+                    <div>${escapeHtml(patient.address_line_1)}</div>
+                    ${patient.address_line_2 ? `<div style="font-size: 12px; color: var(--gray-500);">${escapeHtml(patient.address_line_2)}</div>` : ''}
+                    <div style="font-size: 12px; color: var(--gray-500);">${escapeHtml(patient.city)}, ${escapeHtml(patient.state)} ${escapeHtml(patient.zip_code)}</div>
                 </div>
             </td>
             <td>
@@ -478,7 +479,7 @@ function exportData() {
 
 // Convert to CSV
 function convertToCSV(data) {
-    const headers = ['ID', 'First Name', 'Last Name', 'DOB', 'Gender', 'Phone', 'Email', 'City', 'State'];
+    const headers = ['ID', 'First Name', 'Last Name', 'DOB', 'Gender', 'Phone', 'Email', 'Address Line 1', 'Address Line 2', 'City', 'State', 'ZIP', 'Insurance Provider', 'Insurance ID'];
     const rows = data.map(p => [
         p.patient_id,
         p.first_name,
@@ -487,8 +488,13 @@ function convertToCSV(data) {
         p.sex,
         p.phone_number,
         p.email || '',
+        p.address_line_1 || '',
+        p.address_line_2 || '',
         p.city,
-        p.state
+        p.state,
+        p.zip_code,
+        p.insurance_provider || '',
+        p.insurance_member_id || ''
     ]);
     
     return [headers, ...rows].map(row => row.join(',')).join('\n');
