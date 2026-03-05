@@ -423,8 +423,110 @@ function closeModal() {
 }
 
 // Edit patient
-function editPatient(patientId) {
-    showToast('Edit functionality coming soon!', 'warning');
+async function editPatient(patientId) {
+    try {
+        const response = await API.getPatient(patientId);
+        if (!response.data) {
+            showToast('Patient not found', 'error');
+            return;
+        }
+        
+        const patient = response.data;
+        
+        // Create edit modal with form
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+            <form id="editPatientForm" style="display: grid; gap: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 4px; font-weight: 500;">First Name</label>
+                        <input type="text" name="first_name" value="${escapeHtml(patient.first_name)}" required 
+                            style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 4px; font-weight: 500;">Last Name</label>
+                        <input type="text" name="last_name" value="${escapeHtml(patient.last_name)}" required
+                            style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 4px; font-weight: 500;">Email</label>
+                        <input type="email" name="email" value="${patient.email || ''}"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 4px; font-weight: 500;">Phone Number</label>
+                        <input type="tel" name="phone_number" value="${formatPhone(patient.phone_number)}" required
+                            style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Address Line 1</label>
+                    <input type="text" name="address_line_1" value="${escapeHtml(patient.address_line_1)}" required
+                        style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Address Line 2</label>
+                    <input type="text" name="address_line_2" value="${patient.address_line_2 || ''}"
+                        style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 4px; font-weight: 500;">City</label>
+                        <input type="text" name="city" value="${escapeHtml(patient.city)}" required
+                            style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 4px; font-weight: 500;">State</label>
+                        <input type="text" name="state" value="${escapeHtml(patient.state)}" required maxlength="2"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 4px; font-weight: 500;">ZIP Code</label>
+                        <input type="text" name="zip_code" value="${escapeHtml(patient.zip_code)}" required
+                            style="width: 100%; padding: 8px; border: 1px solid var(--gray-300); border-radius: 4px;">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px;">
+                    <button type="button" onclick="closeModal()" class="btn-ghost">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        `;
+        
+        document.getElementById('modalTitle').textContent = 'Edit Patient';
+        document.getElementById('patientModal').classList.add('active');
+        
+        // Handle form submission
+        document.getElementById('editPatientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const updates = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) updates[key] = value;
+            }
+            
+            try {
+                await API.updatePatient(patientId, updates);
+                showToast('Patient updated successfully!', 'success');
+                closeModal();
+                await loadPatients();
+            } catch (error) {
+                showToast('Failed to update patient', 'error');
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading patient for edit:', error);
+        showToast('Failed to load patient data', 'error');
+    }
 }
 
 // Delete patient
