@@ -137,23 +137,27 @@ async def handle_save_patient(parameters: dict, db: AsyncSession):
                 }
             }
         
+        # Helper to convert empty strings to None for optional fields
+        def none_if_empty(value):
+            return None if value == "" or value is None else value
+        
         patient_data = {
             "first_name": first_name,
             "last_name": last_name,
             "date_of_birth": dob,
             "sex": parameters.get("sex"),
             "phone_number": phone,
-            "email": parameters.get("email"),
+            "email": none_if_empty(parameters.get("email")),
             "address_line_1": parameters.get("addressLine1") or parameters.get("address_line_1"),
-            "address_line_2": parameters.get("addressLine2") or parameters.get("address_line_2"),
+            "address_line_2": none_if_empty(parameters.get("addressLine2") or parameters.get("address_line_2")),
             "city": parameters.get("city"),
             "state": (parameters.get("state") or "").upper(),
             "zip_code": parameters.get("zipCode") or parameters.get("zip_code"),
-            "insurance_provider": parameters.get("insuranceProvider") or parameters.get("insurance_provider"),
-            "insurance_member_id": parameters.get("insuranceMemberId") or parameters.get("insurance_member_id"),
-            "preferred_language": parameters.get("preferredLanguage") or parameters.get("preferred_language", "English"),
-            "emergency_contact_name": parameters.get("emergencyContactName") or parameters.get("emergency_contact_name"),
-            "emergency_contact_phone": emergency_phone
+            "insurance_provider": none_if_empty(parameters.get("insuranceProvider") or parameters.get("insurance_provider")),
+            "insurance_member_id": none_if_empty(parameters.get("insuranceMemberId") or parameters.get("insurance_member_id")),
+            "preferred_language": parameters.get("preferredLanguage") or parameters.get("preferred_language") or "English",
+            "emergency_contact_name": none_if_empty(parameters.get("emergencyContactName") or parameters.get("emergency_contact_name")),
+            "emergency_contact_phone": none_if_empty(emergency_phone)
         }
         
         logger.info(f"Final structured patient data to save:\n{json.dumps({k: str(v) for k, v in patient_data.items()}, indent=2)}")
