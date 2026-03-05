@@ -10,8 +10,22 @@
 ## 📞 Live Demo
 
 - **Phone Number**: `+1 (276) 582-5544`
-- **API Endpoint**: `https://voice-ai-patient-registration-production.up.railway.app`
-- **Dashboard**: `https://voice-ai-frontend-production.up.railway.app/`
+- **Backend API**: `https://voice-ai-patient-registration-production.up.railway.app`
+- **Frontend Dashboard**: Check your Railway dashboard at [railway.app/project/calm-spirit](https://railway.com/project/4d172bb5-f637-46df-8d32-df2ffb12a439)
+
+### 📌 Important: Viewing New Patient Data
+
+**After registering a new patient via phone call, you MUST hard refresh your browser to see the updated data on the dashboard:**
+
+- **Windows/Linux**: `Ctrl + Shift + R` or `Ctrl + F5`
+- **Mac**: `Cmd + Shift + R` or `Cmd + Option + R`
+- **Alternative**: Clear browser cache and reload
+
+This ensures you're viewing the latest patient records without cached data.
+
+---
+
+### 🎯 Try It Now
 
 Call the number above to experience the voice AI agent firsthand!
 
@@ -131,10 +145,10 @@ See [TECHNICAL_EXPLANATION.md](docs/TECHNICAL_EXPLANATION.md) for full architect
 ## 🚀 Quick Start (Development)
 
 ### Prerequisites
-- Python 3.9+ ([Download](https://www.python.org/downloads/))
-- PostgreSQL 14+ ([Download](https://www.postgresql.org/download/))
-- Vapi.ai account ([Sign up](https://vapi.ai/))
-- OpenAI API key ([Get key](https://platform.openai.com/))
+- 🐍 Python 3.9+ ([Download](https://www.python.org/downloads/))
+- 🐘 PostgreSQL 14+ ([Download](https://www.postgresql.org/download/))
+- 🎤 Vapi.ai account ([Sign up](https://vapi.ai/))
+- 🤖 OpenAI API key ([Get key](https://platform.openai.com/))
 
 ### 1. Clone Repository
 
@@ -200,10 +214,12 @@ Interactive API docs at `http://localhost:3000/docs` 🚀
 
 ```bash
 cd ../frontend
-python -m http.server 8080
+python server.py
 ```
 
-Dashboard at `http://localhost:8080/public/` ✅
+Dashboard at `http://localhost:3000` ✅
+
+> **Note**: After adding new patient data, hard refresh your browser (`Ctrl+Shift+R`) to see updated records.
 
 ### 6. Configure Vapi.ai
 
@@ -328,7 +344,7 @@ curl "http://localhost:3000/api/patients?last_name=Doe"
 
 ### Test Voice Agent
 
-1. **Call the phone number** provisioned in Vapi
+1. **Call the phone number** provisioned in Vapi: `+1 (276) 582-5544`
 2. **Follow the conversation** - the agent will guide you
 3. **Provide test information**:
    - First name: "John"
@@ -338,7 +354,8 @@ curl "http://localhost:3000/api/patients?last_name=Doe"
    - Phone: "555-123-4567"
    - Address: "456 Oak Street, Los Angeles, California, 90001"
 4. **Confirm information** when prompted
-5. **Check database**: Should see new patient record
+5. **Check database or dashboard**: Should see new patient record
+   - **Important**: Hard refresh your browser (`Ctrl+Shift+R`) to see the new entry on the dashboard
 
 ---
 

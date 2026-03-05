@@ -1,6 +1,9 @@
 /**
  * Configuration
  * Update API_BASE_URL with your deployed backend URL
+ * 
+ * IMPORTANT: After registering patients via phone call,
+ * hard refresh your browser (Ctrl+Shift+R) to see new data!
  */
 
 const CONFIG = {
