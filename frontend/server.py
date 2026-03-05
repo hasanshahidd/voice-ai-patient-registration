@@ -20,6 +20,11 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
         super().end_headers()
 
+    def do_GET(self):
+        if self.path == '/favicon.ico':
+            self.path = '/public/favicon.ico'
+        super().do_GET()
+
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
